@@ -1,0 +1,40 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-03-26 17:42+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+#
+# File: example-user-program.au3, line: 15
+msgid "Internationalized Test Application"
+msgstr ""
+#
+# File: example-user-program.au3, line: 16
+#, c-format
+msgid "gettext_au3_language_select_ui() has returned %s."
+msgstr ""
+#
+# File: example-user-program.au3, line: 17
+msgid "Gospel of John"
+msgstr ""
+#
+# File: example-user-program.au3, line: 20
+#, c-format
+msgid "Jesus loves you! See the Bible, %s, chapter %d, verse %d."
+msgstr ""
+#
+# File: example-user-program.au3, line: 21
+msgid "Good bye!"
+msgstr ""
