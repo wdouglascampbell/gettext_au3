@@ -110,3 +110,4 @@ Returns the translation of par1 in the language par2.
 
 Returns a string containing the list of all languages that have translations in gettext_au3_runtime(.,.). Format e.g.:
 "en,English|de,Deutsch"
+The order of the languages usually is the alphabetical order of the language code (expect, but don't rely on this).

@@ -9,9 +9,8 @@ Script Function:
 #ce ----------------------------------------------------------------------------
 AutoItSetOption("MustDeclareVars", 1)
 #include "gettext_au3_runtime_library.au3"
-Local $aLanguageList[2][3] = [["en", "English", "English"], ["de", "German", "Deutsch"]]
 Local $apptitle = "Internationalized Test Application"
-Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, $aLanguageList, "en")
+Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), "en")
 Local $apptitle = gettext("Internationalized Test Application")
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s."), $gettext_au3_lang))
 Local $sBook = gettext("Gospel of John")

@@ -16,13 +16,17 @@
 #include <GUIConstantsEx.au3>
 #include "gettext_au3_gettext.au3"
 #forcedef $gettext_au3_lang
-Func gettext_au3_language_select_ui($apptitle, $aLanguageList, $defaultLang = "en") ; ask the user by GUI for his preferred language, return three letter code like ESET
+Func gettext_au3_language_select_ui($apptitle, $sLanguageList, $defaultLang = "en") ; ask the user by GUI for his preferred language, return three letter code like ESET
 	; Return $defaultLang in case of Cancel
 	; parameters must look like
-	; $aLanguageList[4][3] = [["en", "English", "English"], ["es", "Spanish", "Español"], ["ko", "Korean", "한국어"], ["de", "German", "Deutsch"]]
+	; $sLanguageList = "en,English|es,Español|ko,한국어|de,Deutsch"
 	; $apptitle = "Internationalized Test Application"
 	Opt("GUIOnEventMode", 0) ; use message loop mode
-	Local $languageCount = UBound($aLanguageList, 1)
+	; sanitize and slice language list into array $aLanguageList
+	If StringLeft($sLanguageList,1) = "|" Then $sLanguageList = StringTrimRight($sLanguageList,1)
+	If StringRight($sLanguageList,1) = "|" Then $sLanguageList = StringTrimLeft($sLanguageList,1)
+	Local $aLanguageList = StringSplit($sLanguageList, "|")
+	Local $languageCount = $aLanguageList[0]
 	Local $margin = 10
 	Local $col1left = $margin
 	Local $col1width = 40
@@ -37,10 +41,11 @@ Func gettext_au3_language_select_ui($apptitle, $aLanguageList, $defaultLang = "e
 	; create a Radio Button list with one button per language
 	GUICtrlCreateGroup("Select your language:", $col1left, $nextTop + 2, $rightEnd - 2 * $margin, ($languageCount + 1) * $lineheight + 6)
 	$nextTop += $lineheight
-	Local $radioButton[$languageCount]
-	For $i = 0 To $languageCount - 1
-		$radioButton[$i] = GUICtrlCreateRadio($aLanguageList[$i][2], $col1left + $margin, $nextTop, $rightEnd - 4 * $margin, $lineheight)
-		If $aLanguageList[$i][0] = $defaultLang Then
+	Local $radioButton[$languageCount+1]
+	For $i = 1 To $languageCount
+		Local $aLangDef = StringSplit($aLanguageList[$i], ",")
+		$radioButton[$i] = GUICtrlCreateRadio($aLangDef[2], $col1left + $margin, $nextTop, $rightEnd - 4 * $margin, $lineheight)
+		If $aLangDef[1] = $defaultLang Then
 			GUICtrlSetState(-1, $GUI_CHECKED)
 		Else
 			GUICtrlSetState(-1, $GUI_UNCHECKED)
@@ -54,10 +59,11 @@ Func gettext_au3_language_select_ui($apptitle, $aLanguageList, $defaultLang = "e
 	GUISetState(@SW_SHOW, $userdataWindow)
 	Local $langRes = $defaultLang ; default value if no button is checked
 	While 1
-		For $i = 0 To $languageCount - 1
+		For $i = 1 To $languageCount
 			Local $buttonRes = GUICtrlRead($radioButton[$i])
 			If $buttonRes = $GUI_CHECKED Then
-				$langRes = $aLanguageList[$i][0]
+				Local $aLangDef = StringSplit($aLanguageList[$i], ",")
+				$langRes = $aLangDef[1]
 				ExitLoop
 			EndIf
 		Next
