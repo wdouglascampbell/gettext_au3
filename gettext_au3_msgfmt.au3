@@ -5,7 +5,7 @@
 
 	Script Function:
 	Main program.
-	generate gettext_au3_table.au3 from all .po files in the current directory
+	generate gettext_au3_table.au3 from all ??.po files (language code must have exactly two characters) in the current directory
 	gettext_au3_table.au3 then needs to be included in the runtime library.
 	This is roughly the equivalent of C/Unix gettext's msgfmt.exe.
 
@@ -13,14 +13,14 @@
 #include <MsgBoxConstants.au3>
 #include <StringConstants.au3>
 AutoItSetOption("MustDeclareVars", 1)
-Global $apptitle = "msgfmt gettext generator"
+Global $apptitle = "gettext_au3_msgfmt gettext generator"
 Global $sAu3OutputFileName = "gettext_au3_gettext.au3"
 Func WalkThroughPoFiles() ; add the large switch statement to the output code
 	Local $sGlobPattern = "??.po" ; this assumes that all language codes are exactly two characters
 	Local $hPoSearch = FileFindFirstFile($sGlobPattern)
 	; Check if the search was successful, if not display a message and return False.
 	If $hPoSearch = -1 Then
-		MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in WalkThroughPoFiles: No .po files found. No files matched the search pattern %s.", $sGlobPattern))
+		MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in WalkThroughPoFiles: No .po files found. No files matched the search pattern %s.", $sGlobPattern))
 		Return False
 	EndIf
 	Local $sPoFileName = "" ; Assign a Local variable the empty string which will contain the files names found.
@@ -36,7 +36,7 @@ Func AddSwitchGroupToOutput($sPoFileName) ; add the language defined by the file
 	; Return false and MsgBox if trouble
 	Local $aLangName = StringSplit($sPoFileName, ".")
 	If @error Then
-		MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in AddSwitchGroupToOutput: StringSplit failed on filename %s which should have been [language].po.", $sPoFileName))
+		MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in AddSwitchGroupToOutput: StringSplit failed on filename %s which should have been [language].po.", $sPoFileName))
 		Return False
 	EndIf
 	Local $sLangName = $aLangName[1]
@@ -44,7 +44,7 @@ Func AddSwitchGroupToOutput($sPoFileName) ; add the language defined by the file
 	FileWriteLine($sAu3OutputFileName, "            Switch $sSourceText")
 	Local $hPoFile = FileOpen($sPoFileName)
 	If $hPoFile = -1 Then
-		MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in AddSwitchGroupToOutput: Can't open .po files %s .", $sPoFileName))
+		MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in AddSwitchGroupToOutput: Can't open .po files %s .", $sPoFileName))
 		Return False
 	EndIf
 	ParsePoFile($hPoFile, $sLangName)
@@ -70,7 +70,7 @@ Func ParsePoFile($hPoFile, $sLangName) ;loop through lines in .po file pointed t
 		Local $iTmpError = @error
 		If $iTmpError = -1 Then ExitLoop ; regular EOF
 		If $iTmpError <> 0 Then
-			MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in ParsePoFile: FileReadLine of %s.po file failed in line number %d.", $sLangName, $iLineNumber))
+			MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: FileReadLine of %s.po file failed in line number %d.", $sLangName, $iLineNumber))
 			Return False
 		EndIf
 		; split line, determine $sLineType and $sLineValue
@@ -91,13 +91,25 @@ Func ParsePoFile($hPoFile, $sLangName) ;loop through lines in .po file pointed t
 		Switch $sLineType
 			Case "msgid"
 				If $iState <> 0 Then
-					MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in ParsePoFile: LineType 'msgid' encountered while in State %d in %s.po line number %d.", $iState, $sLangName, $iLineNumber))
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: LineType 'msgid' encountered while in State %d in %s.po line number %d.", $iState, $sLangName, $iLineNumber))
+				EndIf
+				If StringLeft($sLineValue,1) <> '"' Then
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgid does not start with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLangName, $iLineNumber))
+				EndIf
+				If StringRight($sLineValue,1) <> '"' Then
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgid does not end with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLangName, $iLineNumber))
 				EndIf
 				$sSourceText = $sLineValue
 				$iState = 1
 			Case "msgstr"
 				If $iState <> 1 Then
-					MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in ParsePoFile: LineType 'msgstr' encountered while in State %d in %s.po line number %d.", $iState, $sLangName, $iLineNumber))
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: LineType 'msgstr' encountered while in State %d in %s.po line number %d.", $iState, $sLangName, $iLineNumber))
+				EndIf
+				If StringLeft($sLineValue,1) <> '"' Then
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgstr does not start with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLangName, $iLineNumber))
+				EndIf
+				If StringRight($sLineValue,1) <> '"' Then
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgstr does not end with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLangName, $iLineNumber))
 				EndIf
 				$sTranslatedText = $sLineValue
 				If ($sSourceText > '""') Then
@@ -105,7 +117,7 @@ Func ParsePoFile($hPoFile, $sLangName) ;loop through lines in .po file pointed t
 						FileWriteLine($sAu3OutputFileName, "                Case " & $sSourceText)
 						FileWriteLine($sAu3OutputFileName, '                    Return ' & $sTranslatedText)
 					Else
-						MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in ParsePoFile: Missing translation for source text %s in %s.po line number %d.", $sSourceText, $sLangName, $iLineNumber))
+						MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: Missing translation for source text %s in %s.po line number %d.", $sSourceText, $sLangName, $iLineNumber))
 					EndIf
 				Else	; SourceText trivially short. nothing to do. This occurs when processing the header
 				EndIf
@@ -116,10 +128,10 @@ Func ParsePoFile($hPoFile, $sLangName) ;loop through lines in .po file pointed t
 				If $iState = 2 Then
 					$iState = 0
 				ElseIf $iState <> 0 Then
-					MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in ParsePoFile: LineType 'ignore' encountered while in State %d in line number %d.", $iState, $iLineNumber))
+					MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: LineType 'ignore' encountered while in State %d in line number %d.", $iState, $iLineNumber))
 				EndIf
 			Case Else
-				MsgBox($MB_SYSTEMMODAL, $apptitle, StringFormat("Error in ParsePoFile: illegal LineType %s in line number %d.", $sLineType, $iLineNumber))
+				MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: illegal LineType %s in line number %d.", $sLineType, $iLineNumber))
 		EndSwitch
 	WEnd
 EndFunc   ;==>ParsePoFile
