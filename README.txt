@@ -88,3 +88,25 @@ The output file name is hard coded in msgfmt.au3 to ensure consistency with gett
 
 ## Compile a New Version of Your Application With Updated Translations
 
+# Source Code Files
+
+## gettext_au3_runtime_library
+
+Runtime library, to be included in the internationalized app.
+
+## gettext_au3_msgfmt.au3
+
+Generator main program. Reads all ??.po files (language codes must have exactly two characters) in the current directory and creates gettext_au3_gettext.au3 .
+
+## gettext_au3_gettext.au3
+
+Generated code, to be included by the runtime. Contains these functions:
+
+### gettext_au3_runtime(Const $sSourceText, Const $lang)
+
+Returns the translation of par1 in the language par2.
+
+### gettext_au3_language_list()
+
+Returns a string containing the list of all languages that have translations in gettext_au3_runtime(.,.). Format e.g.:
+"en,English|de,Deutsch"
