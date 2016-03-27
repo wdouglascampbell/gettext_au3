@@ -83,7 +83,7 @@ Segments that have been changes since the last translation are marked with "fuzz
 
 ## Generate the au3 source table
 
-After the translations are back from the translators, run msgfmt.au3 (or its compiled version msgfmt.exe), generating gettext_au3_gettext.au3 from all **.po files in the current directory.
+After the translations are back from the translators, run gettext_au3_msgfmt.au3 (or its compiled version gettext_au3_msgfmt.exe), generating gettext_au3_gettext.au3 from all **.po files in the current directory.
 The output file name is hard coded in msgfmt.au3 to ensure consistency with gettext_au3_runtime_library.au3, which includes this file.
 
 ## Compile a New Version of Your Application With Updated Translations

@@ -4,11 +4,4 @@
 *.lnk
 *.new
 *.zip
-blfde-*.txt
-output.txt
-test
 BackUp/
-currversion.blfde
-
-# keep node.exe here
-!node.exe
