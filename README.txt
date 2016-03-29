@@ -20,12 +20,20 @@ The argument of gettext must always be one (1) single, uninterrupted literal str
 
 This rule imples:
 * Never ever use line continuation inside the argument of gettext. Use variables and separate gettext lines instead.
-* Never ever use variables inside the argument of gettext. If you need variables,
-use e.g.
+* Never ever use variables inside the argument of gettext. If you need variables, do it this way:
 StringFormat(gettext("My name is %s and I live in %s."), $sName, $sCity)
 * Never ever use String concatenation inside the argument of gettext.
 If you are composing long messages, do it like this:
 MsgBox(..., ..., gettext("Translatable Part 1") & @CRLF & gettext("Translatable Part 2"))
+* Always use double quotes to delimit the string literal of the gettext argument. Strings in single quotes will be silently discarded by xgettext.
+* Do not attempt to use double double quotes from inside the gettext argument. The *only* method is this:
+'''
+MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s%s%s."), '"', $gettext_au3_lang, '"'))
+'''
+* Single quotes *inside* the double quoted gettext argument are o.k. though, e.g.
+'''
+MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned '%s'."), $gettext_au3_lang))
+'''
 
 ### Include the Runtime Library
 
@@ -33,12 +41,11 @@ MsgBox(..., ..., gettext("Translatable Part 1") & @CRLF & gettext("Translatable 
 #include "gettext_au3_runtime_library.au3"
 '''
 
-### Declare and Populate the Required Variables, one of them Global
+### Declare and Populate the Required Variables, $gettext_au3_lang must be Global
 
 '''
-Local $aLanguageList[2][3] = [["en", "English", "English"], ["de", "German", "Deutsch"]]
 Local $apptitle = "Internationalized Test Application"
-Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, $aLanguageList, "en")
+Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), "en")
 '''
 
 ## Generate the Template File (.pot)

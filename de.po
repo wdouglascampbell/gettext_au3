@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-26 17:25+0100\n"
+"POT-Creation-Date: 2016-03-29 16:04+0200\n"
 "PO-Revision-Date: 2016-03-26 18:09+0200\n"
 "Last-Translator: martin <mstut@fimltd.org>\n"
 "Language-Team: Cygnius iTeam\n"
@@ -25,8 +25,8 @@ msgstr "Internationalisierte Test-Anwendung"
 #
 # File: example-user-program.au3, line: 14
 #, c-format
-msgid "gettext_au3_language_select_ui() has returned %s."
-msgstr "gettext_au3_language_select_ui() hat %s zurückgeliefert."
+msgid "gettext_au3_language_select_ui() has returned %s%s%s."
+msgstr "gettext_au3_language_select_ui() hat %s%s%s zurückgeliefert."
 
 #
 # File: example-user-program.au3, line: 15
@@ -34,10 +34,15 @@ msgid "Gospel of John"
 msgstr "Evangelium von Johannes"
 
 #
+# File: example-user-program.au3, line: 19
+msgid "Jesus loves you!"
+msgstr "Jesus liebt Dich!"
+
+#
 # File: example-user-program.au3, line: 18
 #, c-format
-msgid "Jesus loves you! See the Bible, %s, chapter %d, verse %d."
-msgstr "Jesus liebt Dich! Siehe die Bibel, %s, Kapitel %d, Vers %d."
+msgid "See the Bible, %s, chapter %d, verse %d."
+msgstr "Siehe die Bibel, %s, Kapitel %d, Vers %d."
 
 #
 # File: example-user-program.au3, line: 19

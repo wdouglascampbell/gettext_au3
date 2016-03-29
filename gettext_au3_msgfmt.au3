@@ -16,7 +16,7 @@ Script Function:
 AutoItSetOption("MustDeclareVars", 1)
 Global $apptitle = "gettext_au3_msgfmt gettext generator"
 Global $sAu3OutputFileName = "gettext_au3_gettext.au3"
-Global $sLanguageList = ""	; list of languages that do have translations. Format e.g. "en,English|de,Deutsch"
+Global $sLanguageList = ""	; list of languages that do have translations; will be filled by this program. Format e.g. "en,English|de,Deutsch"
 Func WalkThroughPoFiles() ; add the large switch statement to the output code
 	Local $sGlobPattern = "??.po" ; this assumes that all language codes are exactly two characters
 	Local $hPoSearch = FileFindFirstFile($sGlobPattern)
