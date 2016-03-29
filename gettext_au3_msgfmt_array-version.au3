@@ -17,7 +17,11 @@ AutoItSetOption("MustDeclareVars", 1)
 Global $apptitle = "gettext_au3_msgfmt gettext generator"
 Global $sAu3OutputFileName = "gettext_au3_gettext.au3"
 Global $sLanguageList = "" ; list of languages that do have translations; will be filled by this program. Format e.g. "en,English|de,Deutsch"
-Func WalkThroughPoFiles() ; add the large switch statement to the output code
+; internal data structure
+Global $aLangCodes[1] ;	List of language codes.
+Global $aSourceStrings[1] ; List of source strings
+Global $aTranslatedStrings[1][1] ; $aTranslatedStrings[$s][$l] contains the translation of $aSourceString[$s] into language $aLangCodes[$l]
+Func WalkThroughPoFiles() ; add the inner portions of the large switch statement to the output code as the main side effect
 	Local $sGlobPattern = "??.po" ; this assumes that all language codes are exactly two characters
 	Local $hPoSearch = FileFindFirstFile($sGlobPattern)
 	; Check if the search was successful, if not display a message and return False.
@@ -44,6 +48,7 @@ Func AddSwitchGroupToOutput($sPoFileName) ; add the language defined by the file
 		Return False
 	EndIf
 	Local $sLanguageCode = $aLangName[1]
+	_ArrayAdd($aLangCodes, $sLanguageCode) #############################
 	FileWriteLine($sAu3OutputFileName, '        Case "' & $sLanguageCode & '" ; result of processing ' & $sPoFileName)
 	FileWriteLine($sAu3OutputFileName, "            Switch $sSourceText")
 	Local $hPoFile = FileOpen($sPoFileName)
