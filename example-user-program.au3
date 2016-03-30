@@ -12,10 +12,13 @@ AutoItSetOption("MustDeclareVars", 1)
 Local $apptitle = "Internationalized Test Application"
 Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), "en")
 Local $apptitle = gettext("Internationalized Test Application")
+Local $apptitle_en = $gettext_au3_sourceString
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s%s%s."), '"', $gettext_au3_lang, '"'))
 Local $sBook = gettext("Gospel of John")
 Local $nChapter = 3
 Local $nVerse = 16
+$gettext_au3_sourceString = ""
 MsgBox(64, $apptitle, StringFormat(gettext("Jesus loves you!") & @CRLF & gettext("See the Bible, %s, chapter %d, verse %d."), $sBook, $nChapter, $nVerse))
+MsgBox(64, $apptitle_en, StringFormat($gettext_au3_sourceString, $sBook, $nChapter, $nVerse))
 MsgBox(64, $apptitle, gettext("Good bye!"))
 Exit

@@ -16,6 +16,7 @@
 #include <GUIConstantsEx.au3>
 #include "gettext_au3_gettext.au3"
 #forcedef $gettext_au3_lang
+Global $gettext_au3_sourceString = ""	; source string of the last call to gettext. Useful if e.g. logging in English while msgboxing in userlang
 Func gettext_au3_language_select_ui($apptitle, $sLanguageList, $defaultLang = "en") ; ask the user by GUI for his preferred language, return three letter code like ESET
 	; Return $defaultLang in case of Cancel
 	; parameters must look like
@@ -78,7 +79,8 @@ Func gettext_au3_language_select_ui($apptitle, $sLanguageList, $defaultLang = "e
 	GUIDelete($userdataWindow)
 	Return $langRes
 EndFunc   ;==>gettext_au3_language_select_ui
-Func gettext(Const $sSourceText)
+Func gettext(Const $sSourceText)	; return translated version of $sSourceText
+	$gettext_au3_sourceString &= $sSourceText & @CRLF
 	If StringLen($sSourceText) < 1 Then Return $sSourceText
 	; when execution gets here, $sSourceText is guaranteed to be non-empty
 	Local $sTranslatedText = gettext_au3_runtime($sSourceText, $gettext_au3_lang)

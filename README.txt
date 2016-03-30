@@ -35,6 +35,8 @@ MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned '%s'."), $gettext_au3_lang))
 '''
 
+In situations when e.g. logging should be done in English while the user is presented with userlang MsgBoxes, the global variable $gettext_au3_sourceString is appended to with the source text & @CRLF.
+
 ### Include the Runtime Library
 
 '''
