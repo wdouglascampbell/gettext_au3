@@ -10,14 +10,71 @@
 	This is roughly the equivalent of C/Unix gettext's msgfmt.exe.
 
 #ce ----------------------------------------------------------------------------
+#include <Array.au3>
+#include <FileConstants.au3>
 #include <MsgBoxConstants.au3>
 #include <StringConstants.au3>
 #include "gettext_au3_language_codes.au3"
 AutoItSetOption("MustDeclareVars", 1)
+#pragma compile(Console, false)
 Global $apptitle = "gettext_au3_msgfmt gettext generator"
 Global $sAu3OutputFileName = "gettext_au3_gettext.au3"
 Global $sLanguageList = "" ; list of languages that do have translations; will be filled by this program. Format e.g. "en,English|de,Deutsch"
-Func WalkThroughPoFiles() ; add the large switch statement to the output code
+; internal data structure
+Global $aLanguageCodes[0] ;	List of language codes.
+Global $aSourceStrings[0] ; List of source strings
+Global $aTranslatedStrings[0][0] ; $aTranslatedStrings[$s][$l] contains the translation of $aSourceStrings[$s] into language $aLanguageCodes[$l]
+Func getArrayIndex($sValue, ByRef $aList) ; return the index of $sValue within 1-D array $aList
+	; if $sValue is not (yet) contained in $aList, add an element to $aList containing $sValue and return its index
+	; the relationship value<->index will never be changed, so external applications can rely on this being constant
+	; in case of error: MsgBox and Exit, so the calling environment does not need to handle error cases.
+	; This is a helper function.
+	; Calling this function is relatively expensive, always triggering an _ArraySearch
+	Local $iSearchRes = _ArraySearch($aList, $sValue)
+	Local $iSearchError = @error
+	If $iSearchRes >= 0 Then
+		Return $iSearchRes
+	EndIf
+	If ($iSearchError <> 6) And ($iSearchError <> 3) Then
+		MsgBox(16, "getArrayIndex error", StringFormat("_ArraySearch($aList, '%s') returned @error %d.", $sValue, $iSearchError))
+		Exit 1
+	EndIf
+	; when execution gets here, $sValue was not found in $aList, but there was no odd error
+	; add $sValue to $aList
+	Local $iAddRes = _ArrayAdd($aList, $sValue)
+	If $iAddRes >= 0 Then Return $iAddRes
+	; if execution gets here, there has been an odd error in _ArrayAdd
+	Local $iAddError = @error
+	MsgBox(16, "getArrayIndex error", StringFormat("_ArrayAdd($aList, %s) returned @error %d.", $sValue, $iAddError))
+	Exit 1
+EndFunc   ;==>getArrayIndex
+Func getLangNumber($sLanguageCode) ; return index of $sLanguageCode within $aLanguageCodes[]
+	; if it does not exist, add a new element to $aLanguageCodes[]
+	Local Static $sLastLanguageCode = ""
+	Local Static $iLastLanguageIndex = -1
+	If $sLanguageCode = $sLastLanguageCode Then Return $iLastLanguageIndex
+	$iLastLanguageIndex = getArrayIndex($sLanguageCode, $aLanguageCodes)
+	$sLastLanguageCode = $sLanguageCode
+	; check size of $aTranslatedStrings
+	If $iLastLanguageIndex >= UBound($aTranslatedStrings, 2) Then
+		ReDim $aTranslatedStrings[UBound($aTranslatedStrings, 1)][$iLastLanguageIndex + 1]
+	EndIf
+	Return $iLastLanguageIndex
+EndFunc   ;==>getLangNumber
+Func getStringIndex($sSourceString) ; return index of $sSourceString within $aSourceStrings[]
+	; if it does not exist, add a new element to $aSourceStrings[]
+	Local Static $sLastSourceString = ""
+	Local Static $iLastStringIndex = -1
+	If $sSourceString = $sLastSourceString Then Return $iLastStringIndex
+	$iLastStringIndex = getArrayIndex($sSourceString, $aSourceStrings)
+	$sLastSourceString = $sSourceString
+	; check size of $aTranslatedStrings
+	If $iLastStringIndex >= UBound($aTranslatedStrings, 1) Then
+		ReDim $aTranslatedStrings[$iLastStringIndex + 1][UBound($aTranslatedStrings, 2)]
+	EndIf
+	Return $iLastStringIndex
+EndFunc   ;==>getStringIndex
+Func WalkThroughPoFiles() ; read all applicable .po files and fill the array structure with their content
 	Local $sGlobPattern = "??.po" ; this assumes that all language codes are exactly two characters
 	Local $hPoSearch = FileFindFirstFile($sGlobPattern)
 	; Check if the search was successful, if not display a message and return False.
@@ -29,36 +86,24 @@ Func WalkThroughPoFiles() ; add the large switch statement to the output code
 	While 1
 		Local $sPoFileName = FileFindNextFile($hPoSearch)
 		If @error Then ExitLoop ; If there is no more file matching the search. This is a normal event.
-		AddSwitchGroupToOutput($sPoFileName)
+		Local $aLangName = StringSplit($sPoFileName, ".")
+		If @error Then
+			MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in WalkThroughPoFiles: StringSplit failed on filename %s which should have been [language].po.", $sPoFileName))
+			Exit 2
+		EndIf
+		Local $sLanguageCode = $aLangName[1]
+		Local $hPoFile = FileOpen($sPoFileName)
+		If $hPoFile = -1 Then
+			MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in WalkThroughPoFiles: Can't open .po file %s .", $sPoFileName))
+			Exit 2
+		EndIf
+		ParsePoFile($hPoFile, $sLanguageCode)
+		FileClose($hPoFile)
 	WEnd
 	FileClose($hPoSearch) ; close file search handle
 	Return True
 EndFunc   ;==>WalkThroughPoFiles
-Func AddSwitchGroupToOutput($sPoFileName) ; add the language defined by the file $sPoFileName to the big Switch statement
-	; add language to Global $sLanguageList
-	; another appropriate name would be "process one .po file"
-	; Return false and MsgBox if trouble
-	Local $aLangName = StringSplit($sPoFileName, ".")
-	If @error Then
-		MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in AddSwitchGroupToOutput: StringSplit failed on filename %s which should have been [language].po.", $sPoFileName))
-		Return False
-	EndIf
-	Local $sLanguageCode = $aLangName[1]
-	FileWriteLine($sAu3OutputFileName, '        Case "' & $sLanguageCode & '" ; result of processing ' & $sPoFileName)
-	FileWriteLine($sAu3OutputFileName, "            Switch $sSourceText")
-	Local $hPoFile = FileOpen($sPoFileName)
-	If $hPoFile = -1 Then
-		MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in AddSwitchGroupToOutput: Can't open .po files %s .", $sPoFileName))
-		Return False
-	EndIf
-	ParsePoFile($hPoFile, $sLanguageCode)
-	FileClose($hPoFile)
-	FileWriteLine($sAu3OutputFileName, "            EndSwitch")
-	; add language Name to Language List
-	If StringLen($sLanguageList) > 1 Then $sLanguageList &= "|" ; separator between languages, but add it only if this would become the second or additional language. Avoids unneeded |s at the beginning or end
-	$sLanguageList &= StringFormat("%s,%s", $sLanguageCode, gettext_au3_language_name($sLanguageCode))
-EndFunc   ;==>AddSwitchGroupToOutput
-Func ParsePoFile($hPoFile, $sLanguageCode) ;loop through lines in .po file pointed to by $hPoFile (freshly opened)
+Func ParsePoFile($hPoFile, $sLanguageCode) ; loop through lines in the single .po file pointed to by $hPoFile (freshly opened) and fill the arrays
 	; Return False and MsgBox in case of trouble
 	; Parameter $sLanguageCode is only needed for messages about missing translations
 	; State Machine Logic:
@@ -68,9 +113,11 @@ Func ParsePoFile($hPoFile, $sLanguageCode) ;loop through lines in .po file point
 	; 3 : after processing emtpy msgid
 	; 4 : after processing msgstr after emtpy msgid
 	; inintialize state machine
+	Local $iLanguageIndex = getLangNumber($sLanguageCode)
+	Local $sMissingTranslations = ""
 	Local $iState = 0
-	Local $sSourceText = ""
-	Local $sTranslatedText = ""
+	Local $sSourceString = ""
+	Local $sTranslatedString = ""
 	; loop through lines
 	Local $iLineNumber = 0
 	While True
@@ -79,7 +126,7 @@ Func ParsePoFile($hPoFile, $sLanguageCode) ;loop through lines in .po file point
 		Local $iTmpError = @error
 		If $iTmpError = -1 Then ExitLoop ; regular EOF
 		If $iTmpError <> 0 Then
-			MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: FileReadLine of %s.po file failed in line number %d.", $sLanguageCode, $iLineNumber))
+			MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: FileReadLine of %s.po file failed in line number %d with error %d.", $sLanguageCode, $iLineNumber, $iTmpError))
 			Return False
 		EndIf
 		; split line, determine $sLineType and $sLineValue
@@ -113,10 +160,10 @@ Func ParsePoFile($hPoFile, $sLanguageCode) ;loop through lines in .po file point
 							If StringRight($sLineValue, 1) <> '"' Then
 								MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgid does not end with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLanguageCode, $iLineNumber))
 							EndIf
-							$sSourceText = $sLineValue
+							$sSourceString = $sLineValue
 							$iState = 1
 						Else ; empty $sLineValue, so we are in the header
-							$sSourceText = ""
+							$sSourceString = ""
 							$iState = 3
 						EndIf
 					Case Else
@@ -131,19 +178,19 @@ Func ParsePoFile($hPoFile, $sLanguageCode) ;loop through lines in .po file point
 						If StringRight($sLineValue, 1) <> '"' Then
 							MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgstr does not end with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLanguageCode, $iLineNumber))
 						EndIf
-						$sTranslatedText = $sLineValue
-						If ($sSourceText > '""') Then
-							If ($sTranslatedText > '""') Then
-								FileWriteLine($sAu3OutputFileName, "                Case " & $sSourceText)
-								FileWriteLine($sAu3OutputFileName, '                    Return ' & $sTranslatedText)
-							Else
-								MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: Missing translation for source text %s in %s.po line number %d.", $sSourceText, $sLanguageCode, $iLineNumber))
+						$sTranslatedString = $sLineValue
+						If ($sSourceString > '""') Then
+							If ($sTranslatedString > '""') Then
+								Local $iStringIndex = getStringIndex($sSourceString)
+								$aTranslatedStrings[$iStringIndex][$iLanguageIndex] = $sTranslatedString ; <----- CORE CALL
+							Else	; $sTranslatedString is empty
+								$sMissingTranslations &= StringFormat("Line %4d: %s", $iLineNumber, $sSourceString) & @CRLF
 							EndIf
-						Else ; SourceText trivially short. nothing to do. This occurs when processing the header
+						Else ; SourceString trivially short. nothing to do. This occurs regularly when processing the header
 						EndIf
 						; clean up collected attributes
-						Local $sSourceText = ""
-						Local $sTranslatedText = ""
+						Local $sSourceString = ""
+						Local $sTranslatedString = ""
 						$iState = 0
 					Case 3 ; after empty msgid
 						$iState = 4
@@ -166,25 +213,61 @@ Func ParsePoFile($hPoFile, $sLanguageCode) ;loop through lines in .po file point
 				EndSwitch
 		EndSwitch
 	WEnd
+	If StringLen($sMissingTranslations) > 0 Then
+		MsgBox($MB_ICONERROR, $apptitle, StringFormat("Missing translations in %s.po:", $sLanguageCode) & @CRLF & $sMissingTranslations)
+	EndIf
 EndFunc   ;==>ParsePoFile
+Func WriteOutputCode($hOutputAu3) ; write big nested Switch statement to the output file, pointed to by file handle $hOutputAu3
+	; Return false and MsgBox if trouble
+	; write header
+	FileWriteLine($hOutputAu3, "; DO NOT EDIT. Generated by " & @ScriptName & " at " & @YEAR & "-" & @MON & "-" & @MDAY & "_" & @HOUR & ":" & @MIN & ":" & @SEC)
+	FileWriteLine($hOutputAu3, "#include-once")
+	; write main function with large Switch groups
+	FileWriteLine($hOutputAu3, "Func gettext_au3_runtime(Const $sSourceString, Const $sLanguageCode)")
+	FileWriteLine($hOutputAu3, "    Switch $sSourceString")
+	For $iStringIndex = 0 To UBound($aSourceStrings) - 1
+		Local $sSourceString = $aSourceStrings[$iStringIndex]
+		;MsgBox(262144, 'Debug line ~' & @ScriptLineNumber, 'Selection:' & @CRLF & '$sSourceString' & @CRLF & @CRLF & 'Return:' & @CRLF & $sSourceString) ;### Debug MSGBOX
+		If StringLen($sSourceString) < 1 Then ContinueLoop ; skip empty source strings
+		FileWriteLine($hOutputAu3, "        Case " & $sSourceString)
+		FileWriteLine($hOutputAu3, "            Switch $sLanguageCode")
+		For $iLanguageIndex = 0 To UBound($aLanguageCodes) - 1
+			Local $sLanguageCode = $aLanguageCodes[$iLanguageIndex]
+			;MsgBox(262144, 'Debug line ~' & @ScriptLineNumber, 'Selection:' & @CRLF & '$sLanguageCode' & @CRLF & @CRLF & 'Return:' & @CRLF & $sLanguageCode) ;### Debug MSGBOX
+			If StringLen($sLanguageCode) < 1 Then ContinueLoop ; skip empty language codes
+			Local $sTranslatedString = $aTranslatedStrings[$iStringIndex][$iLanguageIndex]
+			If StringLen($sTranslatedString) < 1 Then ContinueLoop ; skip empty translations
+			FileWriteLine($hOutputAu3, '                Case "' & $sLanguageCode & '"')
+			FileWriteLine($hOutputAu3, '                    Return ' & $sTranslatedString)
+		Next ; $iLanguageIndex
+		FileWriteLine($hOutputAu3, "            EndSwitch ; $sLanguageCode")
+	Next ; $iStringIndex
+	FileWriteLine($hOutputAu3, "    EndSwitch ; $sSourceString")
+	FileWriteLine($hOutputAu3, "    ; if execution gets here, no lang/text pair has matched.")
+	FileWriteLine($hOutputAu3, "    Return '' ; '' signifying 'translation missing'")
+	FileWriteLine($hOutputAu3, "EndFunc")
+	; write small function with list of languages
+	FileWriteLine($hOutputAu3, "Func gettext_au3_language_list()")
+	For $iLanguageIndex = 0 To UBound($aTranslatedStrings, 2) - 1
+		Local $sLanguageCode = $aLanguageCodes[$iLanguageIndex]
+		If StringLen($sLanguageCode) < 1 Then ContinueLoop ; skip empty language codes
+		; add language Names to Language List
+		If StringLen($sLanguageList) > 1 Then $sLanguageList &= "|" ; separator between languages, but add it only if this would become the second or additional language. Avoids unneeded |s at the beginning or end
+		$sLanguageList &= StringFormat("%s,%s", $sLanguageCode, gettext_au3_language_name($sLanguageCode))
+	Next ; $iLanguageList
+	FileWriteLine($hOutputAu3, StringFormat('    Return "%s"', $sLanguageList))
+	FileWriteLine($hOutputAu3, "EndFunc")
+EndFunc   ;==>WriteOutputCode
 #Region Main Program
 Global $apptitle = "msgfmt gettext generator"
+WalkThroughPoFiles() ; <----- CORE INPUT CALL
 FileDelete($sAu3OutputFileName) ; remove leftover from previous run
-; write header
-FileWriteLine($sAu3OutputFileName, "; DO NOT EDIT. Generated by msgfmt.au3 at " & @YEAR & "-" & @MON & "-" & @MDAY & "_" & @HOUR & ":" & @MIN & ":" & @SEC)
-FileWriteLine($sAu3OutputFileName, "#include-once")
-; write main function with large Switch groups
-FileWriteLine($sAu3OutputFileName, "Func gettext_au3_runtime(Const $sSourceText, Const $sLanguageCode)")
-FileWriteLine($sAu3OutputFileName, "    Switch $sLanguageCode")
-WalkThroughPoFiles()
-FileWriteLine($sAu3OutputFileName, "    EndSwitch")
-FileWriteLine($sAu3OutputFileName, "    ; if execution gets here, no lang/text pair has matched.")
-FileWriteLine($sAu3OutputFileName, "    Return '*' & $sSourceText ; * signifying 'translation missing'")
-FileWriteLine($sAu3OutputFileName, "EndFunc")
-; write small function with list of languages
-FileWriteLine($sAu3OutputFileName, "Func gettext_au3_language_list()")
-FileWriteLine($sAu3OutputFileName, StringFormat('    Return "%s"', $sLanguageList))
-FileWriteLine($sAu3OutputFileName, "EndFunc")
+Local $hOutputAu3 = FileOpen($sAu3OutputFileName, $FO_OVERWRITE)
+If $hOutputAu3 = -1 Then
+	MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in gettext_au3_msgfmt Main program: Can't open output file %s .", $sAu3OutputFileName))
+	Exit 2
+EndIf
+WriteOutputCode($hOutputAu3) ; <------ CORE OUTPUT CALL
+FileClose($hOutputAu3)
 Exit
 #EndRegion Main Program
-

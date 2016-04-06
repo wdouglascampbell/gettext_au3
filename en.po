@@ -20,7 +20,7 @@ msgstr ""
 #
 # File: example-user-program.au3, line: 13
 msgid "Internationalized Test Application"
-msgstr "Internationalized Test Application"
+msgstr ""
 
 #
 # File: example-user-program.au3, line: 14
@@ -31,7 +31,7 @@ msgstr "gettext_au3_language_select_ui() has returned %s%s%s."
 #
 # File: example-user-program.au3, line: 15
 msgid "Gospel of John"
-msgstr "Gospel of John"
+msgstr ""
 
 #
 # File: example-user-program.au3, line: 19
@@ -47,7 +47,7 @@ msgstr "See the Bible, %s, chapter %d, verse %d."
 #
 # File: example-user-program.au3, line: 19
 msgid "Good bye!"
-msgstr "Good bye!"
+msgstr ""
 
 #
 # File: example-user-program.au3, line: 20

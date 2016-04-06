@@ -84,6 +84,6 @@ Func gettext(Const $sSourceText)	; return translated version of $sSourceText
 	If StringLen($sSourceText) < 1 Then Return $sSourceText
 	; when execution gets here, $sSourceText is guaranteed to be non-empty
 	Local $sTranslatedText = gettext_au3_runtime($sSourceText, $gettext_au3_lang)
-	If StringLen($sTranslatedText) < 1 Then Return '**' & $sSourceText ; incomplete translation
+	If StringLen($sTranslatedText) < 1 Then Return '*' & $sSourceText ; incomplete translation
 	Return $sTranslatedText
 EndFunc   ;==>gettext
