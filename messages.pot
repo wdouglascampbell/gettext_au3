@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-29 16:06+0200\n"
+"POT-Creation-Date: 2016-04-08 14:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,24 +21,24 @@ msgstr ""
 msgid "Internationalized Test Application"
 msgstr ""
 #
-# File: example-user-program.au3, line: 15
+# File: example-user-program.au3, line: 16
 #, c-format
 msgid "gettext_au3_language_select_ui() has returned %s%s%s."
 msgstr ""
 #
-# File: example-user-program.au3, line: 16
+# File: example-user-program.au3, line: 17
 msgid "Gospel of John"
 msgstr ""
 #
-# File: example-user-program.au3, line: 19
+# File: example-user-program.au3, line: 21
 msgid "Jesus loves you!"
 msgstr ""
 #
-# File: example-user-program.au3, line: 19
+# File: example-user-program.au3, line: 21
 #, c-format
 msgid "See the Bible, %s, chapter %d, verse %d."
 msgstr ""
 #
-# File: example-user-program.au3, line: 20
+# File: example-user-program.au3, line: 23
 msgid "Good bye!"
 msgstr ""

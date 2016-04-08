@@ -10,7 +10,7 @@ Script Function:
 AutoItSetOption("MustDeclareVars", 1)
 #include "gettext_au3_runtime_library.au3"
 Local $apptitle = "Internationalized Test Application"
-Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), "en")
+Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), gettext_au3_windows2char(@OSLang))
 Local $apptitle = gettext("Internationalized Test Application")
 Local $apptitle_en = $gettext_au3_sourceString
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s%s%s."), '"', $gettext_au3_lang, '"'))
