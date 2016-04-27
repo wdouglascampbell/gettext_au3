@@ -21,20 +21,27 @@ The argument of gettext must always be one (1) single, uninterrupted literal str
 This rule imples:
 * Never ever use line continuation inside the argument of gettext. Use variables and separate gettext lines instead.
 * Never ever use variables inside the argument of gettext. If you need variables, do it this way:
+
 ```
 StringFormat(gettext("My name is %s and I live in %s."), $sName, $sCity)
 ```
 * Never ever use String concatenation inside the argument of gettext.
 If you are composing long messages, do it like this:
+
 ```
 MsgBox(..., ..., gettext("Translatable Part 1") & @CRLF & gettext("Translatable Part 2"))
 ```
 * Always use double quotes to delimit the string literal of the gettext argument. Strings in single quotes will be silently discarded by xgettext.
 * Do not attempt to use double double quotes from inside the gettext argument. The *only* method is this:
+
 ```
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s%s%s."), '"', $gettext_au3_lang, '"'))
 ```
-* Single quotes *inside* the double quoted gettext argument are o.k. though, e.g. `MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned '%s'."), $gettext_au3_lang))`
+* Single quotes *inside* the double quoted gettext argument are o.k. though, e.g.
+
+```
+MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned '%s'."), $gettext_au3_lang))
+```
 
 In situations when e.g. logging should be done in English while the user is presented with userlang MsgBoxes, the global variable $gettext_au3_sourceString is appended to with the source text & @CRLF.
 
