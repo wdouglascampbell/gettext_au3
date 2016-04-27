@@ -27,28 +27,28 @@ If you are composing long messages, do it like this:
 MsgBox(..., ..., gettext("Translatable Part 1") & @CRLF & gettext("Translatable Part 2"))
 * Always use double quotes to delimit the string literal of the gettext argument. Strings in single quotes will be silently discarded by xgettext.
 * Do not attempt to use double double quotes from inside the gettext argument. The *only* method is this:
-'''
+```
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s%s%s."), '"', $gettext_au3_lang, '"'))
-'''
+```
 * Single quotes *inside* the double quoted gettext argument are o.k. though, e.g.
-'''
+```
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned '%s'."), $gettext_au3_lang))
-'''
+```
 
 In situations when e.g. logging should be done in English while the user is presented with userlang MsgBoxes, the global variable $gettext_au3_sourceString is appended to with the source text & @CRLF.
 
 ### Include the Runtime Library
 
-'''
+```
 #include "gettext_au3_runtime_library.au3"
-'''
+```
 
 ### Declare and Populate the Required Variables, $gettext_au3_lang must be Global
 
-'''
+```
 Local $apptitle = "Internationalized Test Application"
 Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), "en")
-'''
+```
 
 ## Generate the Template File (.pot)
 
@@ -57,9 +57,9 @@ The programmer needs to repeat this step after each modification to the source c
 
 The template file is one single file, common to all user languages, containing all the strings that need to be translated
 
-'''
+```
 xgettext -L C --from-code=UTF-8 --strict --omit-header --no-wrap -o messages.pot example-user-program.au3
-'''
+```
 
 Add source code files as needed. You need to specify every single .au3 file.
 
@@ -68,18 +68,18 @@ Add source code files as needed. You need to specify every single .au3 file.
 This needs to be done only once per language, usually after the first generation of messages.pot .
 
 E.g. for language de:
-'''
+```
 copy messages.pot de.po
-'''
+```
 Very important: edit the Content-Type Header in the language-specific .po file to read UTF-8 instead of CHARSET.
 
 ### Merge Updated Messages and Existing Translations
 
 This needs to be done whenever a modified messages.pot was created.
 
-'''
+```
 msgmerge --no-wrap -U de.po messages.pot
-'''
+```
 
 
 ## Create the Translations
