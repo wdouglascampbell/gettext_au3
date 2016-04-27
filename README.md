@@ -107,13 +107,17 @@ The output file name is hard coded in msgfmt.au3 to ensure consistency with gett
 
 # Source Code Files
 
-## gettext_au3_runtime_library
+## gettext_au3_runtime_library.au3
 
 Runtime library, to be included in the internationalized app.
 
 ## gettext_au3_msgfmt.au3
 
 Generator main program. Reads all ??.po files (language codes must have exactly two characters) in the current directory and creates gettext_au3_gettext.au3 .
+
+## gettext_au3_language_codes.au3
+
+list of some language codes, to be included in gettext_au3_msgfmt.au3 .
 
 ## gettext_au3_gettext.au3
 
