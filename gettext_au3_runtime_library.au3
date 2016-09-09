@@ -246,7 +246,7 @@ Func gettext_au3_windows2char($sLanguageCodeWindows) ; Return the two character 
 	Return "00"
 EndFunc   ;==>gettext_au3_windows2char
 Func gettext_au3_language_select_ui($sApptitle, $sLanguageList, $sDefaultLang = "en") ; ask the user by GUI for his preferred language, return two letter code
-	; Return $sDefaultLang in case of Cancel
+	; Return "cancel" in case of Cancel - modification 2016-09-09 by MST to enable calling environment to detect "cancel" case
 	; parameters must look like
 	; $sLanguageList = "en,English|es,Español|ko,한국어|de,Deutsch"
 	; $sApptitle = "Internationalized Test Application"
@@ -277,7 +277,7 @@ Func gettext_au3_language_select_ui($sApptitle, $sLanguageList, $sDefaultLang = 
 	For $i = 1 To $languageCount
 		Local $aLangDef = StringSplit($aLanguageList[$i], ",")
 		$radioButton[$i] = GUICtrlCreateRadio($aLangDef[2], $col1left + $margin, $nextTop, $rightEnd - 4 * $margin, $lineheight)
-		If ($aLangDef[1] = $sDefaultLang) Or (Not($bDefaultLanguageFound) And ($i = $languageCount)) Then	; always select one language; if nothing matches, use the last one
+		If ($aLangDef[1] = $sDefaultLang) Or (Not ($bDefaultLanguageFound) And ($i = $languageCount)) Then ; always select one language; if nothing matches, use the last one
 			GUICtrlSetState(-1, $GUI_CHECKED)
 			$bDefaultLanguageFound = True
 		Else
@@ -305,6 +305,7 @@ Func gettext_au3_language_select_ui($sApptitle, $sLanguageList, $sDefaultLang = 
 			Case $iOKbutton
 				ExitLoop
 			Case $GUI_EVENT_CLOSE, $iCANCELbutton
+				$langRes = "cancel"
 				ExitLoop
 		EndSwitch
 	WEnd

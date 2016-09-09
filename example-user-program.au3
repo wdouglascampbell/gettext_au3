@@ -14,6 +14,9 @@ Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3
 Local $apptitle = gettext("Internationalized Test Application")
 Local $apptitle_en = $gettext_au3_sourceString
 MsgBox(64, $apptitle, StringFormat(gettext("gettext_au3_language_select_ui() has returned %s%s%s."), '"', $gettext_au3_lang, '"'))
+If $gettext_au3_lang = "cancel" Then
+	Exit
+EndIf
 Local $sBook = gettext("Gospel of John")
 Local $nChapter = 3
 Local $nVerse = 16

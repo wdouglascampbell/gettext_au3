@@ -3,24 +3,24 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-29 16:04+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2016-09-09 10:40+0200\n"
+"PO-Revision-Date: 2016-09-09 10:40+0200\n"
+"Last-Translator: Martin Stut <mstut@fimltd.org>\n"
+"Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.9\n"
 
 #
 # File: example-user-program.au3, line: 13
 msgid "Internationalized Test Application"
-msgstr ""
+msgstr "Internationalized Test Application"
 
 #
 # File: example-user-program.au3, line: 14
@@ -31,7 +31,7 @@ msgstr "gettext_au3_language_select_ui() has returned %s%s%s."
 #
 # File: example-user-program.au3, line: 15
 msgid "Gospel of John"
-msgstr ""
+msgstr "Gospel of John"
 
 #
 # File: example-user-program.au3, line: 19
@@ -47,7 +47,7 @@ msgstr "See the Bible, %s, chapter %d, verse %d."
 #
 # File: example-user-program.au3, line: 19
 msgid "Good bye!"
-msgstr ""
+msgstr "Good bye!"
 
 #
 # File: example-user-program.au3, line: 20

@@ -59,6 +59,8 @@ Local $apptitle = "Internationalized Test Application"
 Global $gettext_au3_lang = gettext_au3_language_select_ui($apptitle, gettext_au3_language_list(), "en")
 ```
 
+gettext_au3_language_select_ui does offer a 'Cancel' button. If the user choses to click it, gettext_au3_language_select_ui returns the special string "cancel" (without the quotes). This design assumes that there will never be a language code named "cancel".
+
 ## Generate the Template File (.pot)
 
 
@@ -71,6 +73,8 @@ xgettext -L C --from-code=UTF-8 --strict --omit-header --no-wrap -o messages.pot
 ```
 
 Add source code files as needed. You need to specify every single .au3 file that might contain calls to gettext.
+
+The sample xgettext_set.bat file included in this collection includes a call that does work for the example app.
 
 ### Copy Template file to Language-Specific PO file 
 
@@ -85,12 +89,13 @@ Very important: do edit the `Content-Type` header in the language-specific .po f
 
 ### Merge Updated Messages and Existing Translations
 
-This needs to be done whenever a modified `messages.pot` was created.
+This needs to be done whenever a modified `messages.pot` was created, i.e. as a second step after each change of translatable strings in the source code.
 
 ```
 msgmerge --no-wrap -U de.po messages.pot
 ```
 
+The sample xgettext_set.bat file included in this collection includes calls for English and German that do work for the example app.
 
 ## Create the Translations
 
@@ -117,14 +122,11 @@ Most importantly, `Func gettext($sSourceText)`, returning the translation of the
 
 ## `gettext_au3_msgfmt.au3`
 
-Generator main program. Reads all `??.po` files (language codes must have exactly two characters) in the current directory and creates `gettext_au3_gettext.au3`.
+Generator main program. Reads all `??.po` files (*language codes must have exactly two characters*) in the current directory and creates `gettext_au3_gettext.au3`.
 
 ## `gettext_au3_language_codes.au3`
 
-List of some language codes, to be included in `gettext_au3_msgfmt.au3`.
-
-Essentially `Func gettext_au3_language_name($language_code)` returning the name of the language of code par1 (two character string), in the language, e.g. "es" -> "Español".
-
+List of some language codes, to be included in `gettext_au3_msgfmt.au3`, essentially `Func gettext_au3_language_name($language_code)` returning the name of the language of code par1 (two character string), in the language, e.g. "es" -> "Español".
 
 
 ## `gettext_au3_gettext.au3`
