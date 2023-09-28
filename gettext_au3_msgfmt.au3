@@ -5,7 +5,7 @@
 
 	Script Function:
 	Main program.
-	generate gettext_au3_table.au3 from all ??.po files (language code must have exactly two characters) in the current directory
+	generate gettext_au3_table.au3 from all *.po files in the current directory
 	gettext_au3_table.au3 then needs to be included in the runtime library.
 	This is roughly the equivalent of C/Unix gettext's msgfmt.exe.
 
@@ -75,7 +75,7 @@ Func getStringIndex($sSourceString) ; return index of $sSourceString within $aSo
 	Return $iLastStringIndex
 EndFunc   ;==>getStringIndex
 Func WalkThroughPoFiles() ; read all applicable .po files and fill the array structure with their content
-	Local $sGlobPattern = "??.po" ; this assumes that all language codes are exactly two characters
+	Local $sGlobPattern = "*.po" ; this assumes that all language codes are exactly two characters
 	Local $hPoSearch = FileFindFirstFile($sGlobPattern)
 	; Check if the search was successful, if not display a message and return False.
 	If $hPoSearch = -1 Then
@@ -253,7 +253,7 @@ Func WriteOutputCode($hOutputAu3) ; write big nested Switch statement to the out
 		If StringLen($sLanguageCode) < 1 Then ContinueLoop ; skip empty language codes
 		; add language Names to Language List
 		If StringLen($sLanguageList) > 1 Then $sLanguageList &= "|" ; separator between languages, but add it only if this would become the second or additional language. Avoids unneeded |s at the beginning or end
-		$sLanguageList &= StringFormat("%s,%s", $sLanguageCode, gettext_au3_language_name($sLanguageCode))
+		$sLanguageList &= StringFormat("%s:%s", $sLanguageCode, gettext_au3_language_name($sLanguageCode))
 	Next ; $iLanguageList
 	FileWriteLine($hOutputAu3, StringFormat('    Return "%s"', $sLanguageList))
 	FileWriteLine($hOutputAu3, "EndFunc")
