@@ -75,7 +75,7 @@ Func getStringIndex($sSourceString) ; return index of $sSourceString within $aSo
 	Return $iLastStringIndex
 EndFunc   ;==>getStringIndex
 Func WalkThroughPoFiles() ; read all applicable .po files and fill the array structure with their content
-	Local $sGlobPattern = "*.po" ; this assumes that all language codes are exactly two characters
+	Local $sGlobPattern = "*.po"
 	Local $hPoSearch = FileFindFirstFile($sGlobPattern)
 	; Check if the search was successful, if not display a message and return False.
 	If $hPoSearch = -1 Then
@@ -178,14 +178,34 @@ Func ParsePoFile($hPoFile, $sLanguageCode) ; loop through lines in the single .p
 						If StringRight($sLineValue, 1) <> '"' Then
 							MsgBox($MB_ICONERROR, $apptitle, StringFormat('Error in ParsePoFile: msgstr does not end with ". Continuing, but you must expect strange runtime issues. %s.po line number %d.', $sLanguageCode, $iLineNumber))
 						EndIf
-						$sTranslatedString = $sLineValue
-						If ($sSourceString > '""') Then
-							If ($sTranslatedString > '""') Then
-								Local $iStringIndex = getStringIndex($sSourceString)
-								$aTranslatedStrings[$iStringIndex][$iLanguageIndex] = $sTranslatedString ; <----- CORE CALL
-							Else	; $sTranslatedString is empty
-								$sMissingTranslations &= StringFormat("Line %4d: %s", $iLineNumber, $sSourceString) & @CRLF
+						$sTranslatedString = StringTrimRight(StringTrimLeft($sLineValue,1),1)
+						; add additional lines to translation, if present
+						While True
+							$iLineNumber += 1
+							Local $sNextLine = FileReadLine($hPoFile)
+							Local $iTmpError = @error
+							If $iTmpError = -1 Then ExitLoop ; regular EOF
+							If $iTmpError <> 0 Then
+								MsgBox($MB_ICONERROR, $apptitle, StringFormat("Error in ParsePoFile: FileReadLine of %s.po file failed in line number %d with error %d.", $sLanguageCode, $iLineNumber, $iTmpError))
+								Return False
 							EndIf
+							$sStrippedLine = StringStripWS($sNextLine, $STR_STRIPLEADING + $STR_STRIPTRAILING)
+							If StringLeft($sStrippedLine, 1) = '"' Then
+								$sTranslatedString &= StringTrimRight(StringTrimLeft($sStrippedLine,1),1)
+								ContinueLoop
+							Else
+								$iLineNumber -= 1
+								FileReadLine($hPoFile, $iLineNumber)
+								ExitLoop
+							EndIf
+						WEnd
+						If ($sSourceString > '""') Then
+							Local $iStringIndex = getStringIndex($sSourceString)
+							If ($sTranslatedString = "") Then
+								; when $sTranslatedString is append language code to $sSourceString to use as translation
+								$sTranslatedString = "[" & $sLanguageCode & "] " & StringTrimRight(StringTrimLeft($sSourceString,1),1)
+							EndIf
+							$aTranslatedStrings[$iStringIndex][$iLanguageIndex] = '"' & $sTranslatedString & '"' ; <----- CORE CALL
 						Else ; SourceString trivially short. nothing to do. This occurs regularly when processing the header
 						EndIf
 						; clean up collected attributes
