@@ -12,7 +12,12 @@
 	Sets
 #ce ----------------------------------------------------------------------------
 #include-once
+#include <Array.au3>
+#include <ComboConstants.au3>
 #include <GUIConstantsEx.au3>
+#include <WindowsConstants.au3>
+#include "..\StringSize\StringSize.au3"
+
 ;#include "gettext_au3_gettext.au3"
 #forcedef $gettext_au3_lang
 Global $gettext_au3_sourceString = "" ; source string of the last call to gettext. Useful if e.g. logging in English while msgboxing in userlang
@@ -31,59 +36,86 @@ Func gettext_au3_language_select_ui($sApptitle, $sLanguageList, $sDefaultLang = 
 	; $sApptitle = "Internationalized Test Application"
 	; Intended use: $sUserLang =  gettext_au3_language_select_ui("Test App", "en-us,English|es-es,Español|ko-kr,한국어|de-de,Deutsch", GetUserDefaultLocaleName())
 	; if $sDefaultLang is not found within $sLanguageList, then the last element of $sLanguageList is pre-selected
-	Opt("GUIOnEventMode", 0) ; use message loop mode
-	; sanitize and slice language list into array $aLanguageList
+	;Opt("GUIOnEventMode", 0) ; use message loop mode
+	
+	; sanitize language list
 	If StringLeft($sLanguageList, 1) = "|" Then $sLanguageList = StringTrimRight($sLanguageList, 1)
 	If StringRight($sLanguageList, 1) = "|" Then $sLanguageList = StringTrimLeft($sLanguageList, 1)
-	Local $aLanguageList = StringSplit($sLanguageList, "|")
-	Local $languageCount = $aLanguageList[0]
+	
+	; split language list into an array and get language count
+	Local $aTemp = StringSplit($sLanguageList, "|")
+	Local $iLanguageCount = UBound($aTemp) - 1
+	
+	; create separate arrays to hold language code and language definition
+	Local $aLangCode[$iLanguageCount]
+	Local $aLangDef[$iLanguageCount]
+	Local $defaultChoice
+	Local $iMaxWidthLanguageDef = 0
+	For $i = 1 To $iLanguageCount
+		Local $aLangInfo = StringSplit($aTemp[$i], ":")
+		$aLangCode[$i-1] = $aLangInfo[1]
+		If $aLangInfo[1] = $sDefaultLang Then
+			$defaultChoice = $aLangInfo[2]
+		EndIf
+		$aLangDef[$i-1] = $aLangInfo[2]
+		Local $aSize = _StringSize($aLangDef[$i-1])
+		If $aSize[2] > $iMaxWidthLanguageDef then
+			$iMaxWidthLanguageDef = $aSize[2]
+		EndIf
+	Next
+	Local $sDisplayList = _ArrayToString ($aLangDef)
+
 	Local $bDefaultLanguageFound = False
 	Local $margin = 10
 	Local $col1left = $margin
-	Local $col1width = 40
+	
+	Local $sLabel = gettext("Select your language:")
+	Local $aSize = _StringSize($sLabel)
+	Local $col1width = $aSize[2]
 	Local $col2left = $col1left + $col1width + $margin
-	Local $col2width = 200
+	
+	Local $col2width = $iMaxWidthLanguageDef + $margin ; margin needed to prevent text overlap with scrollbar
 	Local $col3left = $col2left + $col2width + $margin
-	Local $col3width = 70
+
+	Local $sOK = gettext("OK")
+	Local $aSize = _StringSize($sOK)
+	Local $col3width = $aSize[2] + 20 ; additional 20 gives nice margin for button label 
 	Local $rightEnd = $col3left + $col3width + $margin
-	Local $lineheight = 20
-	Local $userdataWindow = GUICreate($sApptitle, $rightEnd, ($languageCount + 5) * $lineheight)
+	Local $lineheight = 25
+	
+	Local $aSize = _StringSize($sApptitle)
+	If $aSize[2] + 172 > $rightEnd Then
+		$windowSize = $aSize[2] + 172
+	Else
+		$windowSize = $rightEnd
+	EndIf
+	Local $userdataWindow = GUICreate($sApptitle, $windowSize, $margin + $lineheight + $margin)
+	
 	Local $nextTop = $margin
-	; create a Radio Button list with one button per language
-	GUICtrlCreateGroup("Select your language:", $col1left, $nextTop + 2, $rightEnd - 2 * $margin, ($languageCount + 1) * $lineheight + 6)
-	$nextTop += $lineheight
-	Local $radioButton[$languageCount + 1]
-	For $i = 1 To $languageCount
-		Local $aLangDef = StringSplit($aLanguageList[$i], ":")
-		$radioButton[$i] = GUICtrlCreateRadio($aLangDef[2], $col1left + $margin, $nextTop, $rightEnd - 4 * $margin, $lineheight)
-		If ($aLangDef[1] = $sDefaultLang) Or (Not ($bDefaultLanguageFound) And ($i = $languageCount)) Then ; always select one language; if nothing matches, use the last one
-			GUICtrlSetState(-1, $GUI_CHECKED)
-			$bDefaultLanguageFound = True
-		Else
-			GUICtrlSetState(-1, $GUI_UNCHECKED)
-		EndIf
-		$nextTop += $lineheight
-	Next
-	GUICtrlCreateGroup("", -99, -99, 1, 1) ;close group
-	$nextTop += $lineheight
-	Local $iCANCELbutton = GUICtrlCreateButton("Cancel", $col1left, $nextTop, 70)
-	Local $iOKbutton = GUICtrlCreateButton("OK", $col3left, $nextTop, 70)
+	
+	; create a label for combo box
+	GUICtrlCreateLabel ($sLabel, $col1left, $nextTop + 4, $col1width, $lineheight) 
+	
+	; Add Dropdown List of Language Choices
+	Local $hCombo = GUICtrlCreateCombo("", $col2left, $nextTop + 2, $col2width, $lineheight, BitOR($CBS_DROPDOWNLIST, $CBS_AUTOHSCROLL, $WS_VSCROLL))
+	GUICtrlSetData($hCombo, $sDisplayList, $defaultChoice)
+
+	; Add OK Button
+	Local $hOKbutton = GUICtrlCreateButton($sOK, $col3left, $nextTop, $col3width)
+	
 	GUISetState(@SW_SHOW, $userdataWindow)
 	Local $langRes = $sDefaultLang ; default value if no button is checked
 	While 1
-		For $i = 1 To $languageCount
-			Local $buttonRes = GUICtrlRead($radioButton[$i])
-			If $buttonRes = $GUI_CHECKED Then
-				Local $aLangDef = StringSplit($aLanguageList[$i], ":")
-				$langRes = $aLangDef[1]
-				ExitLoop
-			EndIf
-		Next
 		Local $idMsg = GUIGetMsg()
 		Switch $idMsg
-			Case $iOKbutton
+			Case $hOKbutton
+				Local $selected = GUICtrlRead($hCombo)
+				
+				; derive $langRes from selected option
+				Local $index = _ArraySearch($aLangDef, $selected)
+				$langRes = $aLangCode[$index]
 				ExitLoop
-			Case $GUI_EVENT_CLOSE, $iCANCELbutton
+			Case $GUI_EVENT_CLOSE
 				$langRes = "cancel"
 				ExitLoop
 		EndSwitch
@@ -91,9 +123,6 @@ Func gettext_au3_language_select_ui($sApptitle, $sLanguageList, $sDefaultLang = 
 	GUIDelete($userdataWindow)
 	Return $langRes
 EndFunc   ;==>gettext_au3_language_select_ui
-; disable for production
-;$sUserLang = gettext_au3_language_select_ui("Test App", "en,English|es,Español|de,Deutsch|ko,한국어", GetUserDefaultLocaleName())
-;MsgBox(262144, 'Debug line ~' & @ScriptLineNumber, 'Selection:' & @CRLF & '$sUserLang' & @CRLF & @CRLF & 'Return:' & @CRLF & $sUserLang) ;### Debug MSGBOX
 
 Func GetUserDefaultLocaleName()
   Local $aRet = DllCall("kernel32.dll", "int", "GetUserDefaultLocaleName", "wstr", "", "int", 85)
