@@ -83,6 +83,7 @@ Func gettext_au3_language_select_ui($sApptitle, $sLanguageList, $sDefaultLang = 
 	Local $rightEnd = $col3left + $col3width + $margin
 	Local $lineheight = 25
 	
+	Local $windowSize
 	Local $aSize = _StringSize($sApptitle)
 	If $aSize[2] + 172 > $rightEnd Then
 		$windowSize = $aSize[2] + 172
